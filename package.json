@@ -1,0 +1,10 @@
+{
+  "name": "idiom-loom",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests",
+    "check:data": "node scripts/verify-data.js"
+  }
+}
