@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Local tooling and reports
+coverage/
+.DS_Store
+Thumbs.db
+
+# Isolated Git worktrees
+.worktrees/
+
+# Local environment files and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
