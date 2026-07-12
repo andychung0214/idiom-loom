@@ -33,3 +33,10 @@ test('重設本局會清除作答與分數', () => {
   assert.equal(next.score, 0);
   assert.equal(next.cells[cell.id].value, '');
 });
+
+test('宗師難度沒有提示，提示操作不改變狀態', () => {
+  const masterBoard = buildBoard(PUZZLES.find((puzzle) => puzzle.difficulty === 'master'), 12);
+  const master = createGameState(masterBoard, { label: '宗師', blanks: 12, hints: 0, decoys: [] });
+  assert.equal(master.hintsLeft, 0);
+  assert.equal(useHint(master), master);
+});

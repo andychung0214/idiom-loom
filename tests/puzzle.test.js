@@ -39,3 +39,11 @@ test('抽題避開同難度上一局', () => {
   const result = pickPuzzle(PUZZLES, 'beginner', current.id);
   assert.notEqual(result.id, current.id);
 });
+
+test('四個難度各有十六個有效題組', () => {
+  for (const difficulty of ['beginner', 'intermediate', 'advanced', 'master']) {
+    const puzzles = PUZZLES.filter((puzzle) => puzzle.difficulty === difficulty);
+    assert.equal(puzzles.length, 16, `${difficulty} 題組數`);
+    for (const puzzle of puzzles) assert.equal(validatePuzzle(puzzle).valid, true, puzzle.id);
+  }
+});
