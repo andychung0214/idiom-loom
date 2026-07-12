@@ -1,0 +1,6 @@
+import {DIFFICULTIES,PUZZLES} from './data/puzzles.js';import {buildBoard,buildChoices,pickPuzzle} from './game/puzzle.js';import {answerCell,createGameState,resetGame,useHint} from './game/state.js';import {renderApp} from './ui/render.js';
+const root=document.querySelector('#app');let screen='menu',state=null,lastId='';
+function draw(){renderApp(root,{screen,state,choices:state?buildChoices(state.board,DIFFICULTIES[state.difficulty.key].decoys):[]})}
+function start(key){const puzzle=pickPuzzle(PUZZLES,key,lastId);lastId=puzzle.id;const difficulty={...DIFFICULTIES[key],key};state=createGameState(buildBoard(puzzle,difficulty.blanks),difficulty);screen='game';draw()}
+root.addEventListener('click',(event)=>{const b=event.target.closest('[data-action]');if(!b)return;const {action,value,cellId}=b.dataset;if(action==='start')start(value);if(action==='select')state={...state,selectedCellId:cellId};if(action==='answer')state=answerCell(state,state.selectedCellId,value);if(action==='hint')state=useHint(state);if(action==='reset')state=resetGame(state);if(action==='again')start(state.difficulty.key);if(action==='menu')screen='menu';if(state?.completedAt)screen='complete';draw()});
+root.addEventListener('keydown',(event)=>{if(event.key==='Escape'&&state){state={...state,selectedCellId:''};draw()}});draw();
