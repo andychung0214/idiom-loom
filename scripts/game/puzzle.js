@@ -43,7 +43,10 @@ export function buildChoices(board, decoys = []) {
   return [...new Set([...board.blankCells.map((cell) => cell.answer), ...decoys])].sort((a, b) => a.localeCompare(b, 'zh-Hant'));
 }
 
-export function pickPuzzle(puzzles, difficulty, previousId = '') {
+export function pickPuzzle(puzzles, difficulty, excludedIds = []) {
+  const excluded = new Set(Array.isArray(excludedIds) ? excludedIds : [excludedIds]);
   const matching = puzzles.filter((puzzle) => puzzle.difficulty === difficulty);
-  return matching.find((puzzle) => puzzle.id !== previousId) ?? matching[0] ?? null;
+  const candidates = matching.filter((puzzle) => !excluded.has(puzzle.id));
+  const pool = candidates.length ? candidates : matching;
+  return pool[Math.floor(Math.random() * pool.length)] ?? null;
 }

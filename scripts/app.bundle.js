@@ -101,9 +101,12 @@ function buildChoices(board, decoys = []) {
   return [...new Set([...board.blankCells.map((cell) => cell.answer), ...decoys])].sort((a, b) => a.localeCompare(b, 'zh-Hant'));
 }
 
-function pickPuzzle(puzzles, difficulty, previousId = '') {
+function pickPuzzle(puzzles, difficulty, excludedIds = []) {
+  const excluded = new Set(Array.isArray(excludedIds) ? excludedIds : [excludedIds]);
   const matching = puzzles.filter((puzzle) => puzzle.difficulty === difficulty);
-  return matching.find((puzzle) => puzzle.id !== previousId) ?? matching[0] ?? null;
+  const candidates = matching.filter((puzzle) => !excluded.has(puzzle.id));
+  const pool = candidates.length ? candidates : matching;
+  return pool[Math.floor(Math.random() * pool.length)] ?? null;
 }
 
 function createGameState(board, difficulty) {
@@ -149,8 +152,8 @@ function menu(){const difficulties=[['beginner','入門',3],['intermediate','熟
 function game({state,choices}){const b=state.board;let cells='';for(let r=0;r<b.rows;r++)for(let c=0;c<b.columns;c++){const cell=state.cells[`${r}:${c}`];cells+=cell?`<button class="cell used ${cell.status} ${state.selectedCellId===cell.id?'selected':''}" data-action="select" data-cell-id="${cell.id}" aria-label="第 ${r+1} 列第 ${c+1} 欄，${cell.status==='blank'?'尚未作答':cell.value}">${esc(cell.value)}</button>`:'<span class="cell"></span>'}const hint=state.hintsLeft>0?'<button class="action" data-action="hint">揭示一字</button>':'<p class="no-hint">本局無提示</p>';return `<div class="frame">${header()}<section class="game-layout"><div class="board-wrap"><div class="board" style="grid-template-columns:repeat(${b.columns},1fr)">${cells}</div></div><aside class="panel"><div class="stats"><span>分數<b>${state.score}</b></span><span>提示<b>${state.hintsLeft}</b></span></div><p class="feedback" role="status">${state.feedback==='incorrect'?'這一字不在這裡。':state.feedback==='correct'?'落印成功。':'選取空格後，從下方選字。'}</p><div class="choice-grid">${choices.map(x=>`<button class="choice" data-action="answer" data-value="${x}">${x}</button>`).join('')}</div>${hint}<button class="action" data-action="reset">重設本局</button></aside></section></div>`}
 function results({state}){return `<div class="frame">${header()}<section class="results"><p class="kicker">題板完成</p><h2>這一局，落印收成。</h2><p>分數 <strong>${state.score}</strong>　錯誤 ${state.mistakes} 次</p><span class="seal">完成</span><h3>本局成語</h3><ol class="entry-list">${state.board.entries.map(e=>`<li><strong>${e.answer}</strong>｜${e.clue}<br><a href="https://dict.idioms.moe.edu.tw/search.jsp?md=2" target="_blank" rel="noopener noreferrer">前往教育部《成語典》查詢</a></li>`).join('')}</ol><button class="action" data-action="again">再玩一局</button><button class="action" data-action="menu">選擇難度</button></section></div>`}
 
-const root=document.querySelector('#app');let screen='menu',state=null,lastId='';
+const root=document.querySelector('#app');let screen='menu',state=null;const playedIds={};
 function draw(){renderApp(root,{screen,state,choices:state?buildChoices(state.board,DIFFICULTIES[state.difficulty.key].decoys):[]})}
-function start(key){const puzzle=pickPuzzle(PUZZLES,key,lastId);lastId=puzzle.id;const difficulty={...DIFFICULTIES[key],key};state=createGameState(buildBoard(puzzle,difficulty.blanks),difficulty);screen='game';draw()}
+function start(key){const history=playedIds[key]??[];const puzzle=pickPuzzle(PUZZLES,key,history);playedIds[key]=history.length===PUZZLES.filter(p=>p.difficulty===key).length?[puzzle.id]:[...history,puzzle.id];const difficulty={...DIFFICULTIES[key],key};state=createGameState(buildBoard(puzzle,difficulty.blanks),difficulty);screen='game';draw()}
 root.addEventListener('click',(event)=>{const b=event.target.closest('[data-action]');if(!b)return;const {action,value,cellId}=b.dataset;if(action==='start')start(value);if(action==='select')state={...state,selectedCellId:cellId};if(action==='answer')state=answerCell(state,state.selectedCellId,value);if(action==='hint')state=useHint(state);if(action==='reset')state=resetGame(state);if(action==='again')start(state.difficulty.key);if(action==='menu')screen='menu';if(state?.completedAt)screen='complete';draw()});
 root.addEventListener('keydown',(event)=>{if(event.key==='Escape'&&state){state={...state,selectedCellId:''};draw()}});draw();
