@@ -34,6 +34,12 @@ test('重設本局會清除作答與分數', () => {
   assert.equal(next.cells[cell.id].value, '');
 });
 
+test('不使用提示且填完所有空格時，分數剛好為一百分', () => {
+  let next = state;
+  for (const blank of board.blankCells) next = answerCell(next, blank.id, blank.answer);
+  assert.equal(next.score, 100);
+});
+
 test('宗師難度沒有提示，提示操作不改變狀態', () => {
   const masterBoard = buildBoard(PUZZLES.find((puzzle) => puzzle.difficulty === 'master'), 12);
   const master = createGameState(masterBoard, { label: '宗師', blanks: 12, hints: 0, decoys: [] });

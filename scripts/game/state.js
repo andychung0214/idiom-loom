@@ -4,7 +4,7 @@ export function createGameState(board, difficulty) {
     value: board.blankIds.has(cell.id) ? '' : cell.answer,
     status: board.blankIds.has(cell.id) ? 'blank' : 'given'
   }]));
-  return { board, difficulty, cells, score: 0, streak: 0, mistakes: 0, hintsLeft: difficulty.hints, selectedCellId: board.blankCells[0]?.id ?? '', feedback: '', startedAt: Date.now(), completedAt: null };
+  return { board, difficulty, cells, score: 0, correctCount: 0, totalBlanks: board.blankCells.length, streak: 0, mistakes: 0, hintsLeft: difficulty.hints, selectedCellId: board.blankCells[0]?.id ?? '', feedback: '', startedAt: Date.now(), completedAt: null };
 }
 
 export function isComplete(state) {
@@ -15,9 +15,10 @@ export function answerCell(state, cellId, character) {
   const cell = state.cells[cellId];
   if (!cell || cell.status === 'correct' || cell.status === 'hinted') return state;
   if (cell.answer !== character) return { ...state, streak: 0, mistakes: state.mistakes + 1, feedback: 'incorrect' };
-  const points = 100 + state.streak * 25;
+  const correctCount = state.correctCount + 1;
+  const points = Math.round((correctCount / state.totalBlanks) * 100);
   const cells = { ...state.cells, [cellId]: { ...cell, value: character, status: 'correct' } };
-  const next = { ...state, cells, score: state.score + points, streak: state.streak + 1, feedback: 'correct' };
+  const next = { ...state, cells, correctCount, score: points, streak: state.streak + 1, feedback: 'correct' };
   return isComplete(next) ? { ...next, completedAt: Date.now(), feedback: 'complete' } : next;
 }
 

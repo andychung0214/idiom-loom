@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test tests",
-    "check:data": "node scripts/verify-data.js"
+    "check:data": "node scripts/verify-data.js",
+    "build": "node scripts/build-webstation-bundle.js"
   }
 }
